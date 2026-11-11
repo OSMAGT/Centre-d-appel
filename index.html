@@ -1,0 +1,1007 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Call Center Statistics</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f7f6;color:#24332f;font-family:Arial,sans-serif}
+header{background:white;padding:20px 4%;display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid #e3ebe7}
+header h1{color:#087f5b;font-size:22px;margin:0}
+header p{color:#70817b;margin:5px 0}
+.container{max-width:1200px;margin:25px auto;padding:0 18px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+button,select,input{font:inherit}
+.tab{padding:11px 16px;border:1px solid #ddd;background:white;border-radius:8px;cursor:pointer}
+.tab.active,.btn{background:#087f5b;color:white;border:0}
+.btn{padding:11px 17px;border-radius:8px;cursor:pointer}
+.secondary{background:#e8f4ef;color:#087f5b}
+.view{display:block}
+.hidden{display:none!important}
+h2{font-size:21px}
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;background:white;padding:15px;border-radius:12px;margin-bottom:18px}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:bold}
+input,select{padding:10px;border:1px solid #d6e1dc;border-radius:8px;min-height:42px;background:white}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}
+.card,.panel{background:white;border:1px solid #e3ebe7;border-radius:12px;padding:18px;margin-bottom:18px}
+.card p{font-size:12px;color:#70817b}
+.card h2{color:#087f5b;font-size:27px}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #e3ebe7;font-size:13px}
+th{background:#f7faf8}
+.table-container{overflow-x:auto}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.form-grid input,.form-grid select{width:100%}
+.full{grid-column:1/-1}
+.formula{background:#eff8f3;padding:12px;border-radius:8px;color:#176b4d}
+.message{font-weight:bold}
+.ok{color:#087f5b}
+.err{color:#b42318}
+.small-btn{padding:6px 9px;border:0;border-radius:5px;cursor:pointer;margin:2px}
+.edit{background:#e8f4ef;color:#087f5b}
+.delete{background:#fff0f0;color:#b42318}
+.warning{color:#b45309}
+footer{text-align:center;padding:25px;color:#94a39d}
+
+@media(max-width:850px){
+.cards{grid-template-columns:repeat(2,1fr)}
+.form-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+header{align-items:flex-start;flex-direction:column}
+.form-grid{grid-template-columns:1fr}
+.full{grid-column:1}
+.filters>*{width:100%}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div>
+<h1>Call Center Statistics</h1>
+<p>Gestion des statistiques des appels</p>
+</div>
+<strong style="color:#087f5b">Superviseur</strong>
+</header>
+
+<main class="container">
+
+<nav class="tabs">
+<button class="tab active" data-page="dashboard">Dashboard</button>
+<button class="tab" data-page="entry">Saisie des appels</button>
+<button class="tab" data-page="records">Historique</button>
+<button class="tab" data-page="backup">Sauvegarde</button>
+</nav>
+
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="view">
+
+<h2>Tableau de bord</h2>
+
+<div class="filters">
+
+<label>Période
+<select id="period">
+<option value="day">Journalier</option>
+<option value="15days">15 jours</option>
+<option value="week">Hebdomadaire</option>
+<option value="month" selected>Mensuel</option>
+<option value="year">Annuel</option>
+<option value="custom">Période personnalisée</option>
+</select>
+</label>
+
+<label id="reportDateGroup">Date
+<input type="date" id="reportDate">
+</label>
+
+<label id="startDateGroup" class="hidden">Du
+<input type="date" id="startDate">
+</label>
+
+<label id="endDateGroup" class="hidden">Au
+<input type="date" id="endDate">
+</label>
+
+<label>Centre
+<select id="reportCenter">
+<option value="all">Tous les centres</option>
+</select>
+</label>
+
+<button class="btn" id="refresh">Actualiser</button>
+
+</div>
+
+<div class="cards">
+<div class="card">
+<p>Total des appels entrants</p>
+<h2 id="total">0</h2>
+</div>
+
+<div class="card">
+<p>Appels répondus</p>
+<h2 id="answered">0</h2>
+</div>
+
+<div class="card">
+<p>Appels manqués</p>
+<h2 id="missed">0</h2>
+</div>
+
+<div class="card">
+<p>Appels transférés</p>
+<h2 id="transferred">0</h2>
+</div>
+
+<div class="card">
+<p>Taux de réponse</p>
+<h2 id="rate">0%</h2>
+</div>
+</div>
+
+<div class="panel">
+<h3>Statistiques par centre</h3>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Centre</th>
+<th>Entrants</th>
+<th>Répondus</th>
+<th>Manqués</th>
+<th>Transférés</th>
+<th>Taux</th>
+</tr>
+</thead>
+
+<tbody id="centerTable"></tbody>
+</table>
+</div>
+</div>
+
+</section>
+
+<!-- ENTRY -->
+
+<section id="entry" class="view hidden">
+
+<h2>Saisie des statistiques</h2>
+
+<form id="form" class="panel form-grid">
+
+<label>Date
+<input type="date" id="date" required>
+</label>
+
+<label>Centre
+<select id="center" required></select>
+</label>
+
+<label>Appels répondus
+<input type="number" id="a" min="0" value="0" required>
+</label>
+
+<label>Appels manqués
+<input type="number" id="m" min="0" value="0" required>
+</label>
+
+<label>Appels transférés
+<input type="number" id="t" min="0" value="0" required>
+</label>
+
+<label class="full">Observations
+<input type="text" id="notes" placeholder="Observations facultatives">
+</label>
+
+<div class="formula full">
+Total entrant = appels répondus + appels manqués.<br>
+Les appels transférés sont déjà inclus dans les appels répondus.
+</div>
+
+<div class="full">
+<button class="btn" type="submit">Enregistrer</button>
+<button class="btn secondary" type="reset">Effacer</button>
+</div>
+
+<p id="message" class="message full"></p>
+
+</form>
+</section>
+
+<!-- RECORDS -->
+
+<section id="records" class="view hidden">
+
+<h2>Historique des appels</h2>
+
+<div class="filters">
+
+<label>Du
+<input type="date" id="from">
+</label>
+
+<label>Au
+<input type="date" id="to">
+</label>
+
+<label>Centre
+<select id="filterCenter">
+<option value="all">Tous les centres</option>
+</select>
+</label>
+
+<button class="btn" id="search">Rechercher</button>
+
+</div>
+
+<div class="panel table-container">
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Centre</th>
+<th>Répondus</th>
+<th>Manqués</th>
+<th>Transférés</th>
+<th>Entrants</th>
+<th>Observations</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="history"></tbody>
+</table>
+
+</div>
+
+</section>
+
+<!-- BACKUP -->
+
+<section id="backup" class="view hidden">
+
+<h2>Sauvegarde des données</h2>
+
+<div class="panel">
+
+<h3>Exporter les données</h3>
+<p>Télécharger une sauvegarde de tous les enregistrements.</p>
+
+<button class="btn" id="backup">Télécharger JSON</button>
+
+<hr>
+
+<h3>Importer une sauvegarde</h3>
+
+<input type="file" id="file" accept=".json">
+<button class="btn secondary" id="restore">Importer</button>
+
+<hr>
+
+<p class="warning">
+Les données sont enregistrées dans le navigateur de cet appareil.
+Elles ne sont pas automatiquement synchronisées avec les autres appareils.
+</p>
+
+</div>
+</section>
+
+</main>
+
+<footer>Call Center Statistics System</footer>
+
+<script>
+
+// =====================================
+// CONFIGURATION
+// =====================================
+
+const CENTERS = [
+"Reghaia",
+"Baraki",
+"Bougara",
+"Santé",
+"Ain Benian"
+];
+
+const STORAGE_KEY = "clinic_call_center_stats_v1";
+
+let records = loadData();
+
+const $ = id => document.getElementById(id);
+
+function getToday(){
+
+const d = new Date();
+
+return d.getFullYear()+"-"+
+String(d.getMonth()+1).padStart(2,"0")+"-"+
+String(d.getDate()).padStart(2,"0");
+
+}
+
+const today = getToday();
+
+// =====================================
+// STORAGE
+// =====================================
+
+function loadData(){
+
+try{
+return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+}catch{
+return [];
+}
+
+}
+
+function saveData(){
+
+localStorage.setItem(STORAGE_KEY,JSON.stringify(records));
+
+}
+
+function incoming(r){
+
+return r.answered + r.missed;
+
+}
+
+function numberValue(value){
+
+const n = Number(value);
+
+return Number.isInteger(n) && n >= 0 ? n : null;
+
+}
+
+// =====================================
+// CENTERS
+// =====================================
+
+function initializeCenters(){
+
+["center","reportCenter","filterCenter"].forEach(id=>{
+
+CENTERS.forEach(name=>{
+
+const option = document.createElement("option");
+
+option.value = name;
+option.textContent = name;
+
+$(id).appendChild(option);
+
+});
+
+});
+
+}
+
+// =====================================
+// NAVIGATION
+// =====================================
+
+document.querySelectorAll(".tab").forEach(button=>{
+
+button.addEventListener("click",()=>{
+
+const page = button.dataset.page;
+
+document.querySelectorAll(".view").forEach(section=>{
+
+section.classList.toggle("hidden",section.id !== page);
+
+});
+
+document.querySelectorAll(".tab").forEach(tab=>{
+
+tab.classList.toggle("active",tab === button);
+
+});
+
+if(page === "dashboard") renderDashboard();
+if(page === "records") renderHistory();
+
+});
+
+});
+
+// =====================================
+// PERIOD CALCULATION
+// =====================================
+
+function getPeriod(type,dateValue){
+
+const d = new Date(dateValue + "T12:00:00");
+
+let start = new Date(d);
+let end = new Date(d);
+
+// 15 JOURS
+
+if(type === "15days"){
+
+start = new Date(d);
+
+start.setDate(d.getDate()-14);
+
+end = new Date(d);
+
+}
+
+// WEEK
+
+if(type === "week"){
+
+const day = (d.getDay()+6)%7;
+
+start.setDate(d.getDate()-day);
+
+end = new Date(start);
+
+end.setDate(start.getDate()+6);
+
+}
+
+// MONTH
+
+if(type === "month"){
+
+start = new Date(d.getFullYear(),d.getMonth(),1);
+
+end = new Date(d.getFullYear(),d.getMonth()+1,0);
+
+}
+
+// YEAR
+
+if(type === "year"){
+
+start = new Date(d.getFullYear(),0,1);
+
+end = new Date(d.getFullYear(),11,31);
+
+}
+
+function format(x){
+
+return x.getFullYear()+"-"+
+String(x.getMonth()+1).padStart(2,"0")+"-"+
+String(x.getDate()).padStart(2,"0");
+
+}
+
+return [format(start),format(end)];
+
+}
+
+// =====================================
+// CALCULATIONS
+// =====================================
+
+function sum(rows){
+
+return rows.reduce((result,r)=>{
+
+result.answered += r.answered;
+result.missed += r.missed;
+result.transferred += r.transferred;
+
+return result;
+
+},{answered:0,missed:0,transferred:0});
+
+}
+
+function percentage(data){
+
+const total = data.answered + data.missed;
+
+return total ? Math.round(data.answered/total*100) : 0;
+
+}
+
+// =====================================
+// DASHBOARD
+// =====================================
+
+function renderDashboard(){
+
+const type = $("period").value;
+
+const date = $("reportDate").value || today;
+
+const center = $("reportCenter").value;
+
+let start,end;
+
+// CUSTOM PERIOD
+
+if(type === "custom"){
+
+start = $("startDate").value;
+end = $("endDate").value;
+
+if(!start || !end || start > end){
+
+$("total").textContent = 0;
+$("answered").textContent = 0;
+$("missed").textContent = 0;
+$("transferred").textContent = 0;
+$("rate").textContent = "0%";
+
+$("centerTable").innerHTML =
+"<tr><td colspan='6'>Veuillez sélectionner une période valide.</td></tr>";
+
+return;
+
+}
+
+}else{
+
+[start,end] = getPeriod(type,date);
+
+}
+
+// FILTER RECORDS
+
+const rows = records.filter(r=>
+
+r.date >= start &&
+r.date <= end &&
+(center === "all" || r.center === center)
+
+);
+
+// CALCULATIONS
+
+const data = sum(rows);
+
+$("total").textContent = data.answered + data.missed;
+
+$("answered").textContent = data.answered;
+
+$("missed").textContent = data.missed;
+
+$("transferred").textContent = data.transferred;
+
+$("rate").textContent = percentage(data)+"%";
+
+// STATISTICS BY CENTER
+
+$("centerTable").innerHTML = CENTERS
+
+.filter(c=>center === "all" || c === center)
+
+.map(c=>{
+
+const s = sum(rows.filter(r=>r.center === c));
+
+return `<tr>
+<td>${c}</td>
+<td>${s.answered+s.missed}</td>
+<td>${s.answered}</td>
+<td>${s.missed}</td>
+<td>${s.transferred}</td>
+<td>${percentage(s)}%</td>
+</tr>`;
+
+}).join("");
+
+}
+
+// =====================================
+// DASHBOARD FILTERS
+// =====================================
+
+$("refresh").addEventListener("click",renderDashboard);
+
+["reportDate","reportCenter"].forEach(id=>{
+
+$(id).addEventListener("change",renderDashboard);
+
+});
+
+// CUSTOM PERIOD DISPLAY
+
+$("period").addEventListener("change",function(){
+
+const custom = this.value === "custom";
+
+$("startDateGroup").classList.toggle("hidden",!custom);
+
+$("endDateGroup").classList.toggle("hidden",!custom);
+
+$("reportDateGroup").classList.toggle("hidden",custom);
+
+if(custom){
+
+$("startDate").value = today;
+
+$("endDate").value = today;
+
+}
+
+renderDashboard();
+
+});
+
+$("startDate").addEventListener("change",renderDashboard);
+
+$("endDate").addEventListener("change",renderDashboard);
+
+// =====================================
+// SAVE CALL RECORD
+// =====================================
+
+$("form").addEventListener("submit",event=>{
+
+event.preventDefault();
+
+const answered = numberValue($("a").value);
+
+const missed = numberValue($("m").value);
+
+const transferred = numberValue($("t").value);
+
+const message = $("message");
+
+message.className = "message";
+
+if(answered === null || missed === null || transferred === null){
+
+message.textContent = "Veuillez saisir des nombres valides.";
+
+message.classList.add("err");
+
+return;
+
+}
+
+if(transferred > answered){
+
+message.textContent = "Les appels transférés ne peuvent pas dépasser les appels répondus.";
+
+message.classList.add("err");
+
+return;
+
+}
+
+const record = {
+
+id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+
+date: $("date").value,
+
+center: $("center").value,
+
+answered,
+
+missed,
+
+transferred,
+
+notes: $("notes").value.trim()
+
+};
+
+if(!record.date){
+
+message.textContent = "Veuillez sélectionner une date.";
+
+message.classList.add("err");
+
+return;
+
+}
+
+const index = records.findIndex(r=>
+
+r.date === record.date &&
+r.center === record.center
+
+);
+
+if(index !== -1){
+
+if(!confirm("Un enregistrement existe déjà pour cette date et ce centre. Voulez-vous le remplacer ?")) return;
+
+record.id = records[index].id;
+
+records[index] = record;
+
+}else{
+
+records.push(record);
+
+}
+
+saveData();
+
+event.target.reset();
+
+$("date").value = today;
+
+message.textContent = "Enregistrement effectué avec succès.";
+
+message.classList.add("ok");
+
+renderDashboard();
+
+renderHistory();
+
+});
+
+// =====================================
+// HISTORY
+// =====================================
+
+function escapeHTML(value){
+
+return String(value).replace(/[&<>"']/g,c=>({
+
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+
+})[c]);
+
+}
+
+function renderHistory(){
+
+const from = $("from").value;
+
+const to = $("to").value;
+
+const center = $("filterCenter").value;
+
+const rows = records.filter(r=>
+
+(!from || r.date >= from) &&
+(!to || r.date <= to) &&
+(center === "all" || r.center === center)
+
+).sort((a,b)=>b.date.localeCompare(a.date));
+
+$("history").innerHTML = rows.map(r=>`
+
+<tr>
+<td>${escapeHTML(r.date)}</td>
+<td>${escapeHTML(r.center)}</td>
+<td>${r.answered}</td>
+<td>${r.missed}</td>
+<td>${r.transferred}</td>
+<td>${incoming(r)}</td>
+<td>${escapeHTML(r.notes || "")}</td>
+<td>
+<button class="small-btn edit" onclick="editRecord('${r.id}')">Modifier</button>
+<button class="small-btn delete" onclick="deleteRecord('${r.id}')">Supprimer</button>
+</td>
+</tr>
+
+`).join("") || "<tr><td colspan='8'>Aucun enregistrement</td></tr>";
+
+}
+
+$("search").addEventListener("click",renderHistory);
+
+// =====================================
+// EDIT RECORD
+// =====================================
+
+window.editRecord = function(id){
+
+const r = records.find(x=>x.id === id);
+
+if(!r) return;
+
+$("date").value = r.date;
+
+$("center").value = r.center;
+
+$("a").value = r.answered;
+
+$("m").value = r.missed;
+
+$("t").value = r.transferred;
+
+$("notes").value = r.notes || "";
+
+records = records.filter(x=>x.id !== id);
+
+saveData();
+
+document.querySelector('[data-page="entry"]').click();
+
+$("message").textContent = "Modifiez les informations puis enregistrez.";
+
+};
+
+// =====================================
+// DELETE RECORD
+// =====================================
+
+window.deleteRecord = function(id){
+
+if(confirm("Voulez-vous supprimer cet enregistrement ?")){
+
+records = records.filter(r=>r.id !== id);
+
+saveData();
+
+renderHistory();
+
+renderDashboard();
+
+}
+
+};
+
+// =====================================
+// DOWNLOAD BACKUP
+// =====================================
+
+function download(filename,content,type){
+
+const blob = new Blob([content],{type});
+
+const url = URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+
+a.href = url;
+
+a.download = filename;
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}
+
+// =====================================
+// BACKUP
+// =====================================
+
+$("backup").addEventListener("click",()=>{
+
+download(
+
+"Call_Center_Backup.json",
+
+JSON.stringify({version:1,records},null,2),
+
+"application/json"
+
+);
+
+});
+
+// =====================================
+// RESTORE
+// =====================================
+
+$("restore").addEventListener("click",async()=>{
+
+const file = $("file").files[0];
+
+if(!file){
+
+alert("Veuillez sélectionner un fichier.");
+
+return;
+
+}
+
+try{
+
+const data = JSON.parse(await file.text());
+
+const imported = Array.isArray(data) ? data : data.records;
+
+if(!Array.isArray(imported)) throw new Error();
+
+let count = 0;
+
+imported.forEach(r=>{
+
+if(!CENTERS.includes(r.center)) return;
+
+if(!r.date) return;
+
+const answered = numberValue(r.answered);
+
+const missed = numberValue(r.missed);
+
+const transferred = numberValue(r.transferred);
+
+if(answered === null || missed === null || transferred === null || transferred > answered) return;
+
+const index = records.findIndex(x=>
+
+x.date === r.date &&
+x.center === r.center
+
+);
+
+const clean = {
+
+id:r.id || String(Date.now()+Math.random()),
+
+date:r.date,
+
+center:r.center,
+
+answered,
+
+missed,
+
+transferred,
+
+notes:String(r.notes || "")
+
+};
+
+if(index >= 0){
+
+records[index] = clean;
+
+}else{
+
+records.push(clean);
+
+count++;
+
+}
+
+});
+
+saveData();
+
+renderDashboard();
+
+renderHistory();
+
+alert("Importation terminée. Nouveaux enregistrements : "+count);
+
+}catch{
+
+alert("Fichier de sauvegarde invalide.");
+
+}
+
+});
+
+// =====================================
+// INITIALIZATION
+// =====================================
+
+initializeCenters();
+
+$("date").value = today;
+
+$("reportDate").value = today;
+
+renderDashboard();
+
+renderHistory();
+
+</script>
+
+</body>
+</html>
